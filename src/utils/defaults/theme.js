@@ -11,7 +11,11 @@ export default {
     light: 'vc-text-gray-900',
     dark: 'vc-text-gray-200',
   },
-  title: {
+  titleMonth: {
+    light: 'vc-text-lg vc-text-gray-800 vc-font-semibold hover:vc-opacity-75',
+    dark: 'vc-text-lg vc-text-gray-100 vc-font-semibold hover:vc-opacity-75',
+  },
+  titleYear: {
     light: 'vc-text-lg vc-text-gray-800 vc-font-semibold hover:vc-opacity-75',
     dark: 'vc-text-lg vc-text-gray-100 vc-font-semibold hover:vc-opacity-75',
   },

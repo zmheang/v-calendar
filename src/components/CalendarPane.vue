@@ -1,7 +1,4 @@
 <script>
-import Popover from './Popover';
-import PopoverRef from './PopoverRef';
-import CalendarNav from './CalendarNav';
 import CalendarDay from './CalendarDay';
 import Grid from './Grid';
 import {
@@ -9,7 +6,6 @@ import {
   childMixin,
   safeScopedSlotMixin,
 } from '@/utils/mixins';
-import { createGuid } from '@/utils/helpers';
 
 export default {
   name: 'CalendarPane',
@@ -31,53 +27,74 @@ export default {
               class: `vc-title-layout align-${this.titlePosition}`,
             },
             [
-              h('div', { class: 'vc-title-wrapper' }, [
-                // Navigation popover ref with title
+              h('form', { class: 'vc-title' }, [
                 h(
-                  PopoverRef,
-                  {
-                    props: {
-                      id: this.navPopoverId,
-                      visibility: this.navVisibility_,
-                      placement: this.navPlacement,
-                      modifiers: { flip: { behavior: ['bottom'] } },
-                      isInteractive: true,
-                    },
-                  },
+                  'span',
+                  { class: ['vc-title-month', this.theme.titleMonth] },
                   [
-                    // Title content
-                    h('div', { class: ['vc-title', this.theme.title] }, [
-                      this.safeScopedSlot(
-                        'header-title',
-                        this.page,
-                        this.page.title,
-                      ),
-                    ]),
+                    h(
+                      'select',
+                      {
+                        class: 'vc-title-select',
+                        attrs: {
+                          tabindex: 0,
+                        },
+                        domProps: {
+                          value: this.page.month,
+                        },
+                        on: {
+                          change: this.onMonthSelect,
+                        },
+                      },
+                      [
+                        this.monthItems.map(m =>
+                          h(
+                            'option',
+                            {
+                              attrs: {
+                                value: m.month,
+                              },
+                            },
+                            [m.label],
+                          ),
+                        ),
+                      ],
+                    ),
+                    this.monthLabel,
                   ],
                 ),
-                // Navigation popover
-                h(
-                  Popover,
-                  {
-                    props: {
-                      id: this.navPopoverId,
-                      contentClass: this.theme.navPopoverContainer,
-                    },
-                  },
-                  [
-                    // Navigation pane
-                    h(CalendarNav, {
-                      props: {
-                        value: this.page,
-                        validator: this.canMove,
+                h('span', { class: ['vc-title-year', this.theme.titleYear] }, [
+                  h(
+                    'select',
+                    {
+                      class: 'vc-title-select',
+                      attrs: {
+                        tabindex: 1,
+                      },
+
+                      domProps: {
+                        value: this.page.year,
                       },
                       on: {
-                        input: $event => this.move($event),
+                        change: this.onYearSelect,
                       },
-                      scopedSlots: this.$scopedSlots,
-                    }),
-                  ],
-                ),
+                    },
+                    [
+                      this.yearItems.map(y =>
+                        h(
+                          'option',
+                          {
+                            attrs: {
+                              value: y.year,
+                            },
+                          },
+                          [y.label],
+                        ),
+                      ),
+                    ],
+                  ),
+                  h('span', {}, this.yearLabel),
+                ]),
               ]),
             ],
           ),
@@ -143,11 +160,6 @@ export default {
       default: () => true,
     },
   },
-  data() {
-    return {
-      navPopoverId: createGuid(),
-    };
-  },
   computed: {
     navVisibility_() {
       return this.propOrDefault('navVisibility', 'navVisibility');
@@ -167,8 +179,59 @@ export default {
         .getWeekdayDates()
         .map(d => this.format(d, this.masks.weekdays));
     },
+    monthItems() {
+      // const { month: thisMonth, year: thisYear } = pageForDate(new Date());
+      return this.locale.getMonthDates().map((d, i) => {
+        const month = i + 1;
+        return {
+          month,
+          label: this.locale.format(d, this.masks.navMonths),
+          // ariaLabel: this.locale.format(d, 'MMMM YYYY'),
+          // isActive: month === this.month && this.yearIndex === this.year,
+          // isCurrent: month === thisMonth && this.yearIndex === thisYear,
+          // isDisabled: !this.validator({ month, year: this.yearIndex }),
+          // click: () => this.monthClick(month),
+        };
+      });
+    },
+    monthLabel() {
+      return this.monthItems.find(mi => mi.month === this.page.month).label;
+    },
+    yearItems() {
+      // const { _, year: thisYear } = pageForDate(new Date());
+      // const startYear = this.yearGroupIndex * _yearGroupCount;
+      // const endYear = startYear + _yearGroupCount;
+      const items = [];
+      const startYear = 1900;
+      const endYear = 3000;
+      for (let year = startYear; year < endYear; year += 1) {
+        items.push({
+          year,
+          label: year,
+          ariaLabel: year,
+          // isActive: year === this.year,
+          // isCurrent: year === thisYear,
+          // isDisabled: !this.validator({ month: this.month, year }),
+          // click: () => this.yearClick(year),
+        });
+      }
+      return items;
+    },
+    yearLabel() {
+      return this.yearItems.find(mi => mi.year === this.page.year).label;
+    },
   },
   methods: {
+    onMonthSelect(e) {
+      const month = Number.parseInt(e.target.value, 10);
+      const year = this.page.year;
+      this.move({ month, year });
+    },
+    onYearSelect(e) {
+      const month = this.page.month;
+      const year = Number.parseInt(e.target.value, 10);
+      this.move({ month, year });
+    },
     move(page) {
       this.$emit('update:page', page);
     },
@@ -222,15 +285,27 @@ export default {
   }
 }
 
-.vc-title-wrapper {
-  position: relative;
+.vc-title {
+  padding: var(--title-padding);
 }
 
-.vc-title {
-  cursor: pointer;
+.vc-title-month,
+.vc-title-year {
+  position: relative;
   user-select: none;
   white-space: nowrap;
-  padding: var(--title-padding);
+  & select {
+    pointer-events: auto;
+    cursor: pointer;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+  }
+}
+
+.vc-title-year {
+  margin-left: 4px;
 }
 
 .vc-weekday {

@@ -3,32 +3,49 @@ import { arrayHasItems, createGuid } from './helpers';
 import { isUndefined, some } from './_';
 
 export default class Attribute {
-  constructor(
-    {
+  constructor(attr, theme, locale, disabledDates) {
+    const {
       key,
       hashcode,
-      highlight,
-      content,
-      dot,
-      bar,
-      popover,
       dates,
       excludeDates,
       excludeMode,
       customData,
       order,
       pinPage,
-    },
-    theme,
-    locale,
-  ) {
+      disabled,
+    } = attr;
     this.key = isUndefined(key) ? createGuid() : key;
     this.hashcode = hashcode;
     this.customData = customData;
     this.order = order || 0;
     this.dateOpts = { order, locale };
     this.pinPage = pinPage;
+    this.disabled = disabled;
+    // Assign dates
+    this.dates = locale.normalizeDates(dates, this.dateOpts);
+    this.hasDates = !!arrayHasItems(this.dates);
+    // Assign exclude dates
+    this.excludeDates = locale.normalizeDates(excludeDates, this.dateOpts);
+    this.hasExcludeDates = !!arrayHasItems(this.excludeDates);
+    this.excludeMode = excludeMode || 'intersects';
+    // Add infinite date range if excluded dates exist
+    if (this.hasExcludeDates && !this.hasDates) {
+      this.dates.push(new DateInfo({}, this.dateOpts));
+      this.hasDates = true;
+    }
+    this.isComplex = some(this.dates, d => d.isComplex);
+    // Set disabled state
+    let isDisabled = false;
+    if (arrayHasItems(disabledDates) && this.disabled) {
+      isDisabled = disabledDates.some(d => this.intersectsDate(d));
+    }
+    this.isDisabled = isDisabled;
+    if (isDisabled && this.disabled) {
+      Object.assign(attr, this.disabled);
+    }
     // Normalize attribute types
+    const { highlight, content, dot, bar, popover } = attr;
     if (highlight) {
       this.highlight = theme.normalizeHighlight(highlight);
     }
@@ -44,19 +61,6 @@ export default class Attribute {
     if (popover) {
       this.popover = popover;
     }
-    // Assign dates
-    this.dates = locale.normalizeDates(dates, this.dateOpts);
-    this.hasDates = !!arrayHasItems(this.dates);
-    // Assign exclude dates
-    this.excludeDates = locale.normalizeDates(excludeDates, this.dateOpts);
-    this.hasExcludeDates = !!arrayHasItems(this.excludeDates);
-    this.excludeMode = excludeMode || 'intersects';
-    // Add infinite date range if excluded dates exist
-    if (this.hasExcludeDates && !this.hasDates) {
-      this.dates.push(new DateInfo({}, this.dateOpts));
-      this.hasDates = true;
-    }
-    this.isComplex = some(this.dates, d => d.isComplex);
   }
 
   // Accepts: Date or date range object

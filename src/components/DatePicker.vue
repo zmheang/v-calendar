@@ -576,23 +576,22 @@ export default {
       }
 
       // 2. Validation (date or range)
-      const isDisabled = this.valueIsDisabled(normalizedValue);
-      if (isDisabled) {
-        if (isDragging) return;
-        normalizedValue = this.value_;
-        // Don't allow hiding popover
-        hidePopover = false;
-      }
+      // const isDisabled = this.valueIsDisabled(normalizedValue);
+      // if (isDisabled) {
+      //   normalizedValue = this.value_;
+      //   // Don't allow hiding popover
+      //   hidePopover = false;
+      // }
 
       // 3. Assignment
       const valueKey = isDragging ? 'dragValue' : 'value_';
       let valueChanged = !this.valuesAreEqual(this[valueKey], normalizedValue);
 
       // Clear value if same value selected and clearIfEqual is set
-      if (!isDisabled && !valueChanged && clearIfEqual) {
-        normalizedValue = null;
-        valueChanged = true;
-      }
+      // if (!isDisabled && !valueChanged && clearIfEqual) {
+      //   normalizedValue = null;
+      //   valueChanged = true;
+      // }
 
       // Assign value
       if (valueChanged) {

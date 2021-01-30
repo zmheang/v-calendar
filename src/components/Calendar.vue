@@ -681,6 +681,7 @@ export default {
         this.$theme,
         this.$locale,
         this.attributes,
+        this.disabledDates_,
       );
       // Refresh attributes for existing pages
       this.refreshAttrs(this.pages, this.store.list, [], true);

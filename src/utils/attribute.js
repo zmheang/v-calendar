@@ -1,6 +1,6 @@
 import DateInfo from './dateInfo';
 import { arrayHasItems, createGuid } from './helpers';
-import { isUndefined, some } from './_';
+import { isFunction, isUndefined, some } from './_';
 
 export default class Attribute {
   constructor(attr, theme, locale, disabledDates) {
@@ -35,15 +35,23 @@ export default class Attribute {
       this.hasDates = true;
     }
     this.isComplex = some(this.dates, d => d.isComplex);
-    // Set disabled state
+    // Overwrite with disabled state if needed
     let isDisabled = false;
+    let isHidden = false;
     if (arrayHasItems(disabledDates) && this.disabled) {
-      isDisabled = disabledDates.some(d => this.intersectsDate(d));
+      const matchedDates = disabledDates.filter(d => this.intersectsDate(d));
+      if (arrayHasItems(matchedDates)) {
+        const state = isFunction(this.disabled)
+          ? this.disabled(matchedDates)
+          : this.disabled;
+        Object.assign(attr, state);
+        isDisabled = true;
+        isHidden = attr.hidden;
+      }
     }
     this.isDisabled = isDisabled;
-    if (isDisabled && this.disabled) {
-      Object.assign(attr, this.disabled);
-    }
+    this.isHidden = isHidden;
+    if (isHidden) return;
     // Normalize attribute types
     const { highlight, content, dot, bar, popover } = attr;
     if (highlight) {

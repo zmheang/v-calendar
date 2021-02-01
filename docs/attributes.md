@@ -672,3 +672,95 @@ export default {
 ### Additional Options
 
 Reference [API](api/v2.0/attribute.html#popover) for a complete list of popover options.
+
+## Disabled State :tada:
+
+Attributes can be re-configured to display differently, or not at all, if they intersect with a disabled dates. This includes any dates as specified in the [disabled dates](./disable-dates) section.
+
+In order to replace the state of an attribute, assign a nested `disabled` object property of the attribute.
+
+<guide-attributes-disabled :disabled="{ highlight: 'red' }" />
+
+```html
+<v-calendar :min-date="minDate" :attributes="attributes" />
+```
+
+```js
+export default {
+  data() {
+    minDate: new Date(2021, 0, 15),
+    attributes: [
+      {
+        highlight: 'blue',
+        dates: new Date(2021, 0, 5),
+        // Disabled state overwrites top level state
+        disabled: {
+          highlight: 'red',
+        }
+      }
+    ]
+  }
+}
+```
+
+As you can see from the example above, the highlight displays blue for normal dates or red if it intersects with a disabled date (`min-date`).
+
+The `highlight`, `dot`, `bar` and `popover` properties may be reconfigured within the `disabled` object.
+
+### Hidden State
+
+To completely hide the attribute if it intersects with a disabled date, assign the `disabled.hidden` property.
+
+<guide-attributes-disabled :disabled="{ hidden: true }" />
+
+```html
+<v-calendar :attributes="attributes" :min-date="minDate" />
+```
+
+```js
+export default {
+  data() {
+    minDate: new Date(2021, 0, 15),
+    attributes: [
+      {
+        highlight: 'blue',
+        dates: new Date(2021, 0, 5),
+        disabled: {
+          // Just hide if disabled
+          hidden: true,
+        }
+      }
+    ]
+  }
+}
+```
+
+### Disabled Function
+
+If the attribute needs to have different state depending on the exact disabled dates it intersects, use a function that accepts an array of intersecting disabled dates and return the new attribute state.
+
+<guide-attributes-disabled :disabled="(d) => ({ highlight: 'red' })" />
+
+```html
+<v-calendar :min-date="minDate" :attributes="attributes" />
+```
+
+```js
+export default {
+  data() {
+    minDate: new Date(2021, 0, 15),
+    attributes: [
+      {
+        highlight: 'blue',
+        dates: new Date(2021, 0, 5),
+        disabled(dates) {
+          // `dates` is [{ start: null, end: Date(2021, 0, 14, 23, 59, 59) }]
+          return {
+            highlight: 'red'
+          }
+        }
+      }
+    ]
+  }
+}
+```

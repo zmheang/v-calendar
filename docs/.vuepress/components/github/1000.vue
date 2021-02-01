@@ -3,21 +3,17 @@
     <v-date-picker
       v-model="date"
       :disabled-dates="disabledDates"
-      :drag-attribute="dragAttribute"
-      :select-attribute="selectAttribute"
+      :drag-attribute="disabledAttribute"
+      :select-attribute="disabledAttribute"
     />
     <v-date-picker
       v-model="range"
       :disabled-dates="disabledDates"
-      :drag-attribute="dragAttribute"
-      :select-attribute="selectAttribute"
+      :drag-attribute="disabledAttribute"
+      :select-attribute="disabledAttribute"
       is-range
     />
-    <v-calendar
-      :attributes="attributes"
-      :disabled-dates="disabledDates"
-      is-range
-    />
+    <v-calendar :attributes="attributes" :min-date="minDate" is-range />
   </div>
 </template>
 
@@ -40,12 +36,19 @@ export default {
           highlight: 'red',
         },
       },
+      disabledAttribute: {
+        disabled: {
+          highlight: 'red',
+          // hidden: true,
+        },
+      },
       attributes: [
         {
           highlight: true,
           dates: [{ start: new Date(2021, 0, 10), end: new Date(2021, 0, 20) }],
           disabled: {
             highlight: 'red',
+            isHidden: true,
           },
         },
       ],
